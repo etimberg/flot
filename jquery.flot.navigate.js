@@ -114,7 +114,8 @@ Licensed under the MIT License ~ http://threedubmedia.googlecode.com/files/MIT-L
         zoom: {
             interactive: false,
             trigger: "dblclick", // or "click" for single click
-            amount: 1.5 // how much to zoom relative to current position, 2 = 200% (zoom in), 0.5 = 50% (zoom out)
+            amount: 1.5, // how much to zoom relative to current position, 2 = 200% (zoom in), 0.5 = 50% (zoom out)
+            frameRate: 20
         },
         pan: {
             interactive: false,
@@ -134,15 +135,21 @@ Licensed under the MIT License ~ http://threedubmedia.googlecode.com/files/MIT-L
                 plot.zoom({ center: c });
         }
 
+        var prevCursor = 'default', prevPageX = 0, prevPageY = 0, panTimeout = null, zoomTimeout = null;
+
         function onMouseWheel(e, delta) {
             e.preventDefault();
-            onZoomClick(e, delta < 0);
+            var frameRate = plot.getOptions().zoom.frameRate;
+            if (zoomTimeout || !frameRate)
+                return;
+                
+            zoomTimeout = setTimeout(function () {
+                onZoomClick(e, delta < 0);
+                zoomTimeout = null;
+            }, 1 / frameRate * 1000);
             return false;
         }
         
-        var prevCursor = 'default', prevPageX = 0, prevPageY = 0,
-            panTimeout = null;
-
         function onDragStart(e) {
             if (e.which != 1)  // only accept left-click
                 return false;
